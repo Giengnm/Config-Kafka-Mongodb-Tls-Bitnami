@@ -1,0 +1,173 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: mongodb-bme-gen-cert
+data:
+  cert_setup.sh: >+
+    #!/bin/bash
+
+    #Creating the TLS Root CA ca.crt and ca.key
+
+    #umask 007
+
+    #my_hostname=$(hostname) && \
+
+    #openssl req -newkey rsa:2048 -new -x509 -days 365 -nodes -out
+    /certificates/ca.crt -keyout /certificates/ca.key -subj "/C=US/O=U.S.
+    Testing/OU=IT/CN=ROOTCA"
+
+
+    #ls -la /
+
+    #env 
+
+    cp /mongo-bme/certs/ca/CA.crt /mongo-bme/certs/CA.crt 
+
+
+
+    cp /mongo-bme/certs/ca/CA.key /mongo-bme/certs/CA.key 
+
+
+    my_hostname=$(hostname) 
+
+
+    my_ip=$(hostname -I) 
+
+
+    echo "*****************"
+
+    echo "My ip is: ${my_ip}"
+
+    echo "*****************"
+
+
+    cat >/mongo-bme/certs/openssl.cnf <<EOL
+
+
+    [req]
+
+    req_extensions = v3_req
+
+    distinguished_name = req_distinguished_name
+
+    [req_distinguished_name]
+
+    [v3_req]
+
+    basicConstraints = CA:FALSE
+
+    keyUsage = nonRepudiation, digitalSignature, keyEncipherment 
+
+    subjectAltName = @alt_names
+
+    [alt_names]
+
+    DNS.1 = ${MONGODB_MONGOS_0}
+
+    DNS.2 = ${MONGODB_MONGOS_1}
+
+    DNS.2 = $my_hostname
+
+    DNS.3 = $HOSTNAME
+
+    DNS.4 =
+    ${MONGODB_ADVERTISED_HOSTNAME}.mongodb-sharded-bme-headless.dclear-data-dev.svc.cluster.local
+
+    DNS.5 = localhost
+
+    IP.1 = $my_ip
+
+    EOL
+
+
+
+
+    my_hostname=$(hostname -f) 
+
+    export RANDFILE=/mongo-bme/certs/.rnd && openssl genrsa -out
+    /mongo-bme/certs/mongo.key 2048
+
+
+
+    #Create the client/server cert
+
+    openssl req -new -key /mongo-bme/certs/mongo.key -out
+    /mongo-bme/certs/mongo.csr -subj "/C=ES/O=BME/OU=IT/CN=$HOSTNAME" -config
+    /mongo-bme/certs/openssl.cnf
+
+
+    #Signing the server cert with the CA cert and key
+
+    openssl x509 -req -in /mongo-bme/certs/mongo.csr -CA /mongo-bme/certs/CA.crt
+    -CAkey /mongo-bme/certs/CA.key -CAcreateserial -out
+    /mongo-bme/certs/mongo.crt -days 3650 -extensions v3_req -extfile
+    /mongo-bme/certs/openssl.cnf
+
+
+
+    #rm /mongo-bme/certs/mongo.csr
+
+
+    #Concatenate to a pem file for use as the client PEM file which can be used
+    for both member and client authentication.
+
+    cat /mongo-bme/certs/mongo.crt /mongo-bme/certs/mongo.key >
+    /mongo-bme/certs/mongodb.pem
+
+
+
+    #rm /mongo-bme/certs/CA.crt /mongo-bme/certs/CA.key
+
+
+    echo "*****************"
+
+    echo "keytool import CA.crt"
+
+    echo "*****************"
+
+
+    keytool -import -file /mongo-bme/certs/CA.crt -alias mongoClient -keystore
+    /mongo-bme/certs/mongoStore.ts -storepass changeit -noprompt 
+
+
+    echo "*****************"
+
+    echo "openssl export mongodb.p12"
+
+    echo "*****************"
+
+    openssl pkcs12 -export -in /mongo-bme/certs/mongo.crt -inkey
+    /mongo-bme/certs/mongo.key -out /mongo-bme/certs/mongodb.p12 -name
+    mongoClient -password pass:changeit
+
+
+    echo "*****************"
+
+    echo "keytool import mongodb.p12"
+
+    echo "*****************"
+
+
+    keytool -importkeystore -srckeystore /mongo-bme/certs/mongodb.p12
+    -destkeystore /mongo-bme/certs/mongodb.jks -srcstoretype pkcs12 -alias
+    mongoClient -destkeypass changeit -storepass changeit -srcstorepass changeit
+
+
+
+    #keytool -import  -alias mongo -file /mongo-bme/certs/mongo.crt -keypass
+    changeit -keystore /mongo-bme/certs/mongodb.jks -storepass changeit
+    -noprompt
+
+
+    #keytool -import -trustcacerts -alias CACerts -file /mongo-bme/certs/CA.crt
+    -keypass changeit -keystore /mongo-bme/certs/mongodb.jks -storepass changeit
+    -noprompt
+
+
+
+
+
+
+
+
+

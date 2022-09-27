@@ -1,0 +1,169 @@
+replicaCount: 1
+
+image:
+  registry: darwin-docker-release-local.artifactory.six-group.net
+  repository: provectuslabs/kafka-ui
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "1.0.0"
+
+imagePullSecrets:
+  - name: artifactory-pull-secret
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+existingConfigMap: ""
+#yamlApplicationConfig: {}
+yamlApplicationConfig:
+  kafka:
+    clusters:
+      - name: kafka-bme
+        bootstrapServers: kafka-bme.dclear-kafka-dev:9092
+        schemaRegistry: http://kafka-schema-registry-cp-schema-registry:8081
+        kafkaConnect:
+          - name: kafka-connect-bme
+            address: http://kafka-connect-bme-cp-kafka-connect:8083
+        properties:
+          security.protocol: SSL
+          ssl:
+            truststore.type: PEM
+            truststore.location: /certs/ca.crt
+
+  # spring:
+  #   security:
+  #     oauth2:
+  auth:
+    type: disabled
+  management:
+     health:
+       ldap:
+         enabled: false
+yamlApplicationConfigConfigMap:
+  {}
+  # keyName: config.yml
+  # name: configMapName
+existingSecret: ""
+envs:
+  secret: {}
+  config: {}
+
+networkPolicy:
+  enabled: false
+  egressRules:
+    ## Additional custom egress rules
+    ## e.g:
+    ## customRules:
+    ##   - to:
+    ##       - namespaceSelector:
+    ##           matchLabels:
+    ##             label: example
+    customRules: []
+  ingressRules:
+    ## Additional custom ingress rules
+    ## e.g:
+    ## customRules:
+    ##   - from:
+    ##       - namespaceSelector:
+    ##           matchLabels:
+    ##             label: example
+    customRules: []
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext: {}
+#podSecurityContext:
+#  fsGroup: 1000
+
+securityContext: {}
+#securityContext:
+#  capabilities:
+#    drop:
+#    - ALL
+#  #  readOnlyRootFilesystem: true
+#  runAsNonRoot: true
+#  runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 80
+  # if you want to force a specific nodePort. Must be use with service.type=NodePort
+  # nodePort:
+
+# Ingress configuration
+ingress:
+  # Enable ingress resource
+  enabled: false
+
+  # Annotations for the Ingress
+  annotations: {}
+  #annotations: 
+  #  kubernetes.io/ingress.class: nginx
+  #  kubernetes.io/tls-acme: 'true'
+
+  # ingressClassName for the Ingress
+  ingressClassName: ""
+
+  # The path for the Ingress
+  path: "/"
+
+  # The hostname for the Ingress
+  host: kafdrop.local
+
+  # configs for Ingress TLS
+  tls:
+    # Enable TLS termination for the Ingress
+    enabled: false
+    # the name of a pre-created Secret containing a TLS private key and certificate
+    secretName: ""
+
+  # HTTP paths to add to the Ingress before the default path
+  precedingPaths: []
+
+  # Http paths to add to the Ingress after the default path
+  succeedingPaths: []
+
+resources:
+  limits:
+    cpu: 200m
+    memory: 1024Mi
+  requests:
+    cpu: 200m
+    memory: 512Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+env: {}
+
+initContainers: {}
+
+volumeMounts: 
+  - name: kafka-certs
+    readOnly: true
+    mountPath: /certs
+
+volumes:
+  - name: kafka-certs
+    secret:
+      secretName: kafka-bme-0-tls
+      defaultMode: 256

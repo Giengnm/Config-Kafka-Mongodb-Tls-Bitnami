@@ -1,0 +1,558 @@
+auth:
+  enabled: true
+  existingSecret: ""
+  replicaSetKey: atmiraKEY123
+  rootPassword: atmira123BME
+  rootUser: root
+  usePasswordFile: false
+clusterDomain: cluster.local
+common:
+  containerPorts:
+    mongodb: 27017
+  extraEnvVars: []
+  extraEnvVarsCM: ""
+  extraEnvVarsSecret: ""
+  extraVolumeMounts:
+  - mountPath: /opt/bitnami/ca-certs
+    name: mongodb-sharded-bme-ca-certs
+  - mountPath: /opt/bitnami/gen-certs
+    name: mongodb-sharded-gen-cert
+  - mountPath: /opt/bitnami/certs
+    name: mongodb-sharded-bme-certs
+  extraVolumes:
+  - name: mongodb-sharded-bme-ca-certs
+    secret:
+      defaultMode: 511
+      secretName: mongodb-sharded-bme-ca-certs
+  - configMap:
+      defaultMode: 511
+      name: mongodb-sharded-gen-cert
+    name: mongodb-sharded-gen-cert
+  - emptyDir: {}
+    name: mongodb-sharded-bme-certs
+  - configMap:
+      defaultMode: 511
+      name: mongodb-exporter-tls-config
+    name: mongodb-exporter-tls-config
+  initContainers: []
+  initScriptsCM: ""
+  initScriptsSecret: ""
+  mongodbDirectoryPerDB: false
+  mongodbDisableSystemLog: false
+  mongodbEnableIPv6: false
+  mongodbEnableNumactl: false
+  mongodbMaxWaitTimeout: 120
+  mongodbSystemLogVerbosity: 0
+  podAnnotations: {}
+  podLabels: {}
+  serviceAccount:
+    annotations: {}
+    automountServiceAccountToken: true
+    create: false
+    name: ""
+  sidecars:
+  - image: darwin-docker-release-local.artifactory.six-group.net/bitnami/mongodb-exporter:0.34.0-debian-11-r14
+    imagePullPolicy: Always
+    name: metrics
+    ports:
+    - containerPort: 9216
+      name: metrics-port
+    volumeMounts:
+    - mountPath: /opt/bitnami/ca-certs
+      name: mongodb-sharded-bme-ca-certs
+    - mountPath: /opt/bitnami/gen-certs
+      name: mongodb-sharded-gen-cert
+    - mountPath: /opt/bitnami/certs
+      name: mongodb-sharded-bme-certs
+    - mountPath: /opt/bitnami/tls
+      name: mongodb-exporter-tls-config
+  useHostnames: true
+commonAnnotations: {}
+commonLabels: {}
+configsvr:
+  affinity: {}
+  args: []
+  command:
+  - /bin/bash
+  - /entrypoint/replicaset-entrypoint.sh
+  config: ""
+  configCM: ""
+  containerSecurityContext:
+    enabled: true
+    readOnlyRootFilesystem: false
+    runAsNonRoot: true
+    runAsUser: 1000990000
+  customLivenessProbe: {}
+  customReadinessProbe: {}
+  customStartupProbe: {}
+  external:
+    host: ""
+    replicasetKey: ""
+    replicasetName: ""
+    rootPassword: ""
+  extraEnvVars:
+  - name: MONGODB_CLIENT_EXTRA_FLAGS
+    value: --tls --tlsCertificateKeyFile=/opt/bitnami/certs/mongodb.pem --tlsCAFile=/opt/bitnami/ca-certs/CA.crt
+      --tlsAllowInvalidHostnames
+  extraEnvVarsCM: ""
+  extraEnvVarsSecret: ""
+  extraVolumeMounts: []
+  extraVolumes: []
+  hostAliases: []
+  initContainers: []
+  lifecycleHooks: {}
+  livenessProbe:
+    enabled: false
+    failureThreshold: 2
+    initialDelaySeconds: 60
+    periodSeconds: 30
+    successThreshold: 1
+    timeoutSeconds: 20
+  mongodbExtraFlags:
+  - --tlsMode=requireTLS
+  - --tlsCertificateKeyFile=/opt/bitnami/certs/mongodb.pem
+  - --tlsClusterFile=/opt/bitnami/certs/mongodb.pem
+  - --tlsCAFile=/opt/bitnami/ca-certs/CA.crt
+  nodeAffinityPreset:
+    key: ""
+    type: ""
+    values: []
+  nodeSelector: {}
+  pdb:
+    create: false
+    maxUnavailable: 1
+    minAvailable: 0
+  persistence:
+    accessModes:
+    - ReadWriteOnce
+    annotations: {}
+    enabled: true
+    mountPath: /bitnami/mongodb
+    resourcePolicy: ""
+    size: 150Gi
+    storageClass: six-nfs-app-c3-c3p
+    subPath: ""
+  podAffinityPreset: ""
+  podAnnotations: {}
+  podAntiAffinityPreset: soft
+  podLabels: {}
+  podManagementPolicy: OrderedReady
+  podSecurityContext:
+    enabled: true
+    fsGroup: 1000990000
+  priorityClassName: ""
+  readinessProbe:
+    enabled: false
+    failureThreshold: 6
+    initialDelaySeconds: 10
+    periodSeconds: 30
+    successThreshold: 1
+    timeoutSeconds: 20
+  replicaCount: 3
+  resources:
+    limits:
+      cpu: 750m
+      memory: 2048Mi
+    requests:
+      cpu: 500m
+      memory: 1536Mi
+  schedulerName: ""
+  serviceAccount:
+    annotations: {}
+    automountServiceAccountToken: true
+    create: false
+    name: ""
+  sidecars: []
+  startupProbe:
+    enabled: true
+    failureThreshold: 30
+    initialDelaySeconds: 0
+    periodSeconds: 10
+    successThreshold: 1
+    timeoutSeconds: 5
+  terminationGracePeriodSeconds: ""
+  tolerations: []
+  topologySpreadConstraints: []
+  updateStrategy:
+    type: RollingUpdate
+diagnosticMode:
+  args:
+  - infinity
+  command:
+  - sleep
+  enabled: false
+extraDeploy: []
+fullnameOverride: ""
+global:
+  imagePullSecrets:
+  - artifactory-pull-secret
+  imageRegistry: ""
+  storageClass: six-nfs-app-c3-c3p
+image:
+  debug: false
+  digest: ""
+  pullPolicy: Always
+  pullSecrets: []
+  registry: darwin-docker-release-local.artifactory.six-group.net
+  repository: bitnami/mongodb-sharded
+  tag: 6.0.1-debian-11-r8-tls1
+kubeVersion: ""
+metrics:
+  containerPorts:
+    metrics: 9216
+  containerSecurityContext:
+    enabled: true
+    readOnlyRootFilesystem: false
+    runAsNonRoot: true
+    runAsUser: 1000990000
+  customLivenessProbe: {}
+  customReadinessProbe: {}
+  customStartupProbe: {}
+  enabled: false
+  extraArgs: ""
+  image:
+    pullPolicy: Always
+    pullSecrets: []
+    registry: darwin-docker-release-local.artifactory.six-group.net
+    repository: bitnami/mongodb-exporter
+    tag: 0.34.0-debian-11-r14
+  livenessProbe:
+    enabled: false
+    failureThreshold: 3
+    initialDelaySeconds: 15
+    periodSeconds: 5
+    successThreshold: 1
+    timeoutSeconds: 5
+  podAnnotations:
+    prometheus.io/port: '{{ .Values.metrics.containerPort }}'
+    prometheus.io/scrape: "true"
+  podMonitor:
+    additionalLabels: {}
+    enabled: false
+    interval: 30s
+    namespace: monitoring
+    scrapeTimeout: ""
+  readinessProbe:
+    enabled: false
+    failureThreshold: 3
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    successThreshold: 1
+    timeoutSeconds: 1
+  resources:
+    limits:
+      cpu: 250m
+      memory: 512Mi
+    requests:
+      cpu: 125m
+      memory: 256Mi
+  startupProbe:
+    enabled: false
+    failureThreshold: 15
+    initialDelaySeconds: 0
+    periodSeconds: 5
+    successThreshold: 1
+    timeoutSeconds: 2
+  useTLS: false
+mongos:
+  affinity: {}
+  args: []
+  command: []
+  config: ""
+  configCM: ""
+  containerSecurityContext:
+    enabled: true
+    readOnlyRootFilesystem: false
+    runAsNonRoot: true
+    runAsUser: 1000990000
+  customLivenessProbe: {}
+  customReadinessProbe: {}
+  customStartupProbe: {}
+  extraEnvVars:
+  - name: MONGODB_CLIENT_EXTRA_FLAGS
+    value: --tls --tlsCertificateKeyFile=/opt/bitnami/certs/mongodb.pem --tlsCAFile=/opt/bitnami/ca-certs/CA.crt
+      --tlsAllowInvalidHostnames
+  extraEnvVarsCM: ""
+  extraEnvVarsSecret: ""
+  extraVolumeMounts: []
+  extraVolumes: []
+  hostAliases: []
+  initContainers: []
+  lifecycleHooks: {}
+  livenessProbe:
+    enabled: false
+    failureThreshold: 2
+    initialDelaySeconds: 60
+    periodSeconds: 30
+    successThreshold: 1
+    timeoutSeconds: 20
+  mongodbExtraFlags: []
+  nodeAffinityPreset:
+    key: ""
+    type: ""
+    values: []
+  nodeSelector: {}
+  pdb:
+    create: false
+    maxUnavailable: 1
+    minAvailable: 0
+  podAffinityPreset: ""
+  podAnnotations: {}
+  podAntiAffinityPreset: soft
+  podLabels: {}
+  podManagementPolicy: OrderedReady
+  podSecurityContext:
+    enabled: true
+    fsGroup: 1000990000
+  priorityClassName: ""
+  readinessProbe:
+    enabled: false
+    failureThreshold: 6
+    initialDelaySeconds: 10
+    periodSeconds: 30
+    successThreshold: 1
+    timeoutSeconds: 20
+  replicaCount: 2
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 2048Mi
+    requests:
+      cpu: 500m
+      memory: 1536Mi
+  schedulerName: ""
+  serviceAccount:
+    annotations: {}
+    automountServiceAccountToken: true
+    create: false
+    name: ""
+  servicePerReplica:
+    annotations: {}
+    clusterIPs: []
+    enabled: false
+    externalIPs: []
+    externalTrafficPolicy: Cluster
+    extraPorts: []
+    loadBalancerIPs: []
+    loadBalancerSourceRanges: []
+    nodePorts: []
+    port: 27017
+    sessionAffinity: None
+    sessionAffinityConfig: {}
+    type: ClusterIP
+  sidecars: []
+  startupProbe:
+    enabled: false
+    failureThreshold: 30
+    initialDelaySeconds: 0
+    periodSeconds: 10
+    successThreshold: 1
+    timeoutSeconds: 5
+  terminationGracePeriodSeconds: ""
+  tolerations: []
+  topologySpreadConstraints: []
+  updateStrategy:
+    type: RollingUpdate
+  useStatefulSet: false
+nameOverride: ""
+namespaceOverride: ""
+service:
+  annotations: {}
+  clusterIP: ""
+  externalIPs: []
+  externalTrafficPolicy: Cluster
+  extraPorts: []
+  loadBalancerIP: ""
+  loadBalancerSourceRanges: []
+  name: ""
+  nodePorts:
+    mongodb: ""
+  ports:
+    mongodb: 27017
+  sessionAffinity: None
+  sessionAffinityConfig: {}
+  type: ClusterIP
+shards: 3
+shardsvr:
+  arbiter:
+    affinity: {}
+    args: []
+    command: []
+    config: ""
+    configCM: ""
+    containerSecurityContext:
+      enabled: true
+      readOnlyRootFilesystem: false
+      runAsNonRoot: true
+      runAsUser: 1000990000
+    customLivenessProbe: {}
+    customReadinessProbe: {}
+    customStartupProbe: {}
+    extraEnvVars: []
+    extraEnvVarsCM: ""
+    extraEnvVarsSecret: ""
+    extraVolumeMounts: []
+    extraVolumes: []
+    hostAliases: []
+    initContainers: []
+    lifecycleHooks: {}
+    livenessProbe:
+      enabled: false
+      failureThreshold: 2
+      initialDelaySeconds: 60
+      periodSeconds: 30
+      successThreshold: 1
+      timeoutSeconds: 20
+    mongodbExtraFlags: []
+    nodeAffinityPreset:
+      key: ""
+      type: ""
+      values: []
+    nodeSelector: {}
+    podAffinityPreset: ""
+    podAnnotations: {}
+    podAntiAffinityPreset: soft
+    podLabels: {}
+    podManagementPolicy: OrderedReady
+    podSecurityContext:
+      enabled: true
+      fsGroup: 1000990000
+    priorityClassName: ""
+    readinessProbe:
+      enabled: false
+      failureThreshold: 6
+      initialDelaySeconds: 10
+      periodSeconds: 30
+      successThreshold: 1
+      timeoutSeconds: 20
+    replicaCount: 0
+    resources: {}
+    schedulerName: ""
+    serviceAccount:
+      annotations: {}
+      automountServiceAccountToken: true
+      create: false
+      name: ""
+    sidecars: []
+    startupProbe:
+      enabled: false
+      failureThreshold: 30
+      initialDelaySeconds: 0
+      periodSeconds: 10
+      successThreshold: 1
+      timeoutSeconds: 5
+    terminationGracePeriodSeconds: ""
+    tolerations: []
+    topologySpreadConstraints: []
+    updateStrategy:
+      type: RollingUpdate
+  dataNode:
+    affinity: {}
+    args: []
+    command:
+    - /bin/bash
+    - /entrypoint/replicaset-entrypoint.sh
+    config: ""
+    configCM: ""
+    containerSecurityContext:
+      enabled: true
+      readOnlyRootFilesystem: false
+      runAsNonRoot: true
+      runAsUser: 1000990000
+    customLivenessProbe: {}
+    customReadinessProbe: {}
+    customStartupProbe: {}
+    extraEnvVars:
+    - name: MONGODB_CLIENT_EXTRA_FLAGS
+      value: --tls --tlsCertificateKeyFile=/opt/bitnami/certs/mongodb.pem --tlsCAFile=/opt/bitnami/ca-certs/CA.crt
+        --tlsAllowInvalidHostnames
+    extraEnvVarsCM: ""
+    extraEnvVarsSecret: ""
+    extraVolumeMounts: []
+    extraVolumes: []
+    hostAliases: []
+    initContainers: []
+    lifecycleHooks: {}
+    livenessProbe:
+      enabled: false
+      failureThreshold: 2
+      initialDelaySeconds: 60
+      periodSeconds: 30
+      successThreshold: 1
+      timeoutSeconds: 20
+    mongodbExtraFlags:
+    - --tlsMode=requireTLS
+    - --tlsCertificateKeyFile=/opt/bitnami/certs/mongodb.pem
+    - --tlsClusterFile=/opt/bitnami/certs/mongodb.pem
+    - --tlsCAFile=/opt/bitnami/ca-certs/CA.crt
+    nodeAffinityPreset:
+      key: ""
+      type: ""
+      values: []
+    nodeSelector: {}
+    pdb:
+      create: false
+      maxUnavailable: 1
+      minAvailable: 0
+    podAffinityPreset: ""
+    podAnnotations: {}
+    podAntiAffinityPreset: soft
+    podLabels: {}
+    podManagementPolicy: OrderedReady
+    podSecurityContext:
+      enabled: true
+      fsGroup: 1000990000
+    priorityClassName: ""
+    readinessProbe:
+      enabled: false
+      failureThreshold: 6
+      initialDelaySeconds: 10
+      periodSeconds: 30
+      successThreshold: 1
+      timeoutSeconds: 20
+    replicaCount: 3
+    resources:
+      limits:
+        cpu: 750m
+        memory: 2560Mi
+      requests:
+        cpu: 250m
+        memory: 1792Mi
+    schedulerName: ""
+    serviceAccount:
+      annotations: {}
+      automountServiceAccountToken: true
+      create: false
+      name: ""
+    sidecars: []
+    startupProbe:
+      enabled: false
+      failureThreshold: 30
+      initialDelaySeconds: 0
+      periodSeconds: 10
+      successThreshold: 1
+      timeoutSeconds: 5
+    terminationGracePeriodSeconds: ""
+    tolerations: []
+    topologySpreadConstraints: []
+    updateStrategy:
+      type: RollingUpdate
+  persistence:
+    accessModes:
+    - ReadWriteOnce
+    annotations: {}
+    enabled: true
+    mountPath: /bitnami/mongodb
+    resourcePolicy: ""
+    size: 150Gi
+    storageClass: six-nfs-app-c3-c3p
+    subPath: ""
+volumePermissions:
+  enabled: false
+  image:
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+    registry: darwin-docker-release-local.artifactory.six-group.net
+    repository: bitnami/bitnami-shell
+    tag: 11-debian-11-r13
+  resources: {}

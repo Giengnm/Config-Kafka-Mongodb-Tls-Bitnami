@@ -1,0 +1,54 @@
+USER-SUPPLIED VALUES:
+accessControl:
+  allowMethods: GET,POST,PUT,OPTIONS
+  allowOrigin: '*'
+  enabled: true
+affinity: {}
+configurationOverrides: {}
+customEnv:
+  SCHEMA_REGISTRY_DEBUG: true
+  SCHEMA_REGISTRY_KAFKASTORE_SECURITY_PROTOCOL: SSL
+  SCHEMA_REGISTRY_KAFKASTORE_SSL_TRUSTSTORE_LOCATION: /certs-0/ca.crt
+  SCHEMA_REGISTRY_KAFKASTORE_SSL_TRUSTSTORE_TYPE: PEM
+image: darwin-docker-release-local.artifactory.six-group.net/confluentinc/cp-schema-registry
+imagePullPolicy: IfNotPresent
+imagePullSecrets:
+- name: artifactory-pull-secret
+imageTag: 7.0.5
+jmx:
+  port: 5555
+kafka:
+  bootstrapServers: kafka-bme.dclear-kafka-dev:9092
+nodeSelector: {}
+podAnnotations: {}
+prometheus:
+  jmx:
+    enabled: false
+    image: solsson/kafka-prometheus-jmx-exporter@sha256
+    imagePullPolicy: IfNotPresent
+    imageTag: 6f82e2b0464f50da8104acd7363fb9b995001ddff77d248379f8788e78946143
+    port: 5556
+    resources: {}
+replicaCount: 1
+resources:
+  limits:
+    cpu: 1500m
+    memory: 1.5Gi
+  requests:
+    cpu: 1000m
+    memory: 1Gi
+securityContext:
+  fsGroup: 1001040000
+  runAsNonRoot: true
+  runAsUser: 1001040000
+servicePort: 8081
+tolerations: []
+volumeMounts:
+- mountPath: /certs-0
+  name: kafka-certs-0
+  readOnly: true
+volumes:
+- name: kafka-certs-0
+  secret:
+    defaultMode: 256
+    secretName: kafka-bme-0-tls

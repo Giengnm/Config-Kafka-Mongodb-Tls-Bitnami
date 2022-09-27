@@ -1,0 +1,91 @@
+USER-SUPPLIED VALUES:
+affinity: {}
+autoscaling:
+  enabled: false
+  maxReplicas: 100
+  minReplicas: 1
+  targetCPUUtilizationPercentage: 80
+env: {}
+envs:
+  config: {}
+  secret: {}
+existingConfigMap: ""
+existingSecret: ""
+fullnameOverride: ""
+image:
+  pullPolicy: IfNotPresent
+  registry: darwin-docker-release-local.artifactory.six-group.net
+  repository: provectuslabs/kafka-ui
+  tag: 1.0.0
+imagePullSecrets:
+- name: artifactory-pull-secret
+ingress:
+  annotations: {}
+  enabled: false
+  host: kafdrop.local
+  ingressClassName: ""
+  path: /
+  precedingPaths: []
+  succeedingPaths: []
+  tls:
+    enabled: false
+    secretName: ""
+initContainers: {}
+nameOverride: ""
+networkPolicy:
+  egressRules:
+    customRules: []
+  enabled: false
+  ingressRules:
+    customRules: []
+nodeSelector: {}
+podAnnotations: {}
+podLabels: {}
+podSecurityContext: {}
+replicaCount: 1
+resources:
+  limits:
+    cpu: 200m
+    memory: 1024Mi
+  requests:
+    cpu: 200m
+    memory: 512Mi
+securityContext: {}
+service:
+  port: 80
+  type: ClusterIP
+serviceAccount:
+  annotations: {}
+  create: true
+  name: ""
+tolerations: []
+volumeMounts:
+- mountPath: /certs-0
+  name: kafka-certs-0
+  readOnly: true
+volumes:
+- name: kafka-certs-0
+  secret:
+    defaultMode: 256
+    secretName: kafka-bme-0-tls
+yamlApplicationConfig:
+  auth:
+    type: disabled
+  kafka:
+    clusters:
+    - bootstrapServers: kafka-bme.dclear-kafka-dev:9092
+      kafkaConnect:
+      - address: http://kafka-bme-connect-cp-kafka-connect:8083
+        name: kafka-connect-internal
+      name: kafka-internal
+      properties:
+        security.protocol: SSL
+        ssl:
+          truststore.location: /certs-0/ca.crt
+          truststore.type: PEM
+      schemaRegistry: http://kafka-schema-registry-cp-schema-registry:8081
+  management:
+    health:
+      ldap:
+        enabled: false
+yamlApplicationConfigConfigMap: {}

@@ -1,0 +1,188 @@
+# Default values for cp-kafka-connect.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 2
+
+## Image Info
+## ref: https://hub.docker.com/r/confluentinc/cp-kafka/
+image: darwin-docker-release-local.artifactory.six-group.net/confluentinc/cp-kafka-connect-plugin
+imageTag: 6.1.0
+
+## Specify a imagePullPolicy
+## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
+imagePullPolicy: Always
+
+## Specify an array of imagePullSecrets.
+## Secrets must be manually created in the namespace.
+## ref: https://kubernetes.io/docs/concepts/containers/images/#specifying-imagepullsecrets-on-a-pod
+imagePullSecrets:
+  - name: artifactory-pull-secret
+
+servicePort: 8083
+
+## Kafka Connect properties
+## ref: https://docs.confluent.io/current/connect/userguide.html#configuring-workers
+configurationOverrides:
+  "plugin.path": "/usr/share/java,/usr/share/confluent-hub-components"
+  "key.converter": "io.confluent.connect.avro.AvroConverter"
+  "value.converter": "io.confluent.connect.avro.AvroConverter"
+  "key.converter.schemas.enable": "false"
+  "value.converter.schemas.enable": "false"
+  "internal.key.converter": "org.apache.kafka.connect.json.JsonConverter"
+  "internal.value.converter": "org.apache.kafka.connect.json.JsonConverter"
+  "config.storage.replication.factor": "3"
+  "offset.storage.replication.factor": "3"
+  "status.storage.replication.factor": "3"
+  "security.protocol": "SSL"
+  "ssl.truststore.type": "PEM"
+  "ssl.truststore.location": "/certs/ca.crt"
+  "consumer.security.protocol": "SSL"
+  "consumer.ssl.truststore.type": "PEM"
+  "consumer.ssl.truststore.location": "/certs/ca.crt"
+  "consumer.log4j.root.loglevel": "DEBUG"
+  "producer.security.protocol": "SSL"
+  "producer.ssl.truststore.type": "PEM"
+  "producer.ssl.truststore.location": "/certs/ca.crt"
+  "producer.log4j.root.loglevel": "DEBUG"
+  "bootstrap.servers": "kafka-bme.dclear-kafka-dev:9092"
+  "consumer.bootstrap.servers": "kafka-bme.dclear-kafka-dev:9092"
+  "producer.bootstrap.servers": "kafka-bme.dclear-kafka-dev:9092"
+  
+## Kafka Connect JVM Heap Option
+#heapOptions: "-Xms512M -Xmx1g -Djava.net.preferIPv4Stack=true"
+heapOptions: "-Djava.net.preferIPv4Stack=true -Dcom.sun.jndi.ldap.object.disableEndpointIdentification=true"
+#heapOptions: "-Djava.net.preferIPv4Stack=true -Djavax.net.ssl.keyStore=/mongo-bme/certs/mongodb.jks -Djavax.net.ssl.keyStorePassword=changeit"
+
+## Additional env variables
+## CUSTOM_SCRIPT_PATH is the path of the custom shell script to be ran mounted in a volume
+customEnv: 
+  KAFKA_OPTS: "-Djavax.net.ssl.trustStore=/mongo-bme/certs/mongoStore.ts -Djavax.net.ssl.trustStorePassword=changeit -Djavax.net.ssl.keyStore=/mongo-bme/certs/mongodb.jks -Djavax.net.ssl.keyStorePassword=changeit"
+  CUSTOM_SCRIPT_PATH: /mongo-bme/certs/gen-certs/cert_setup.sh
+  MONGODB_MONGOS_0: mongodb-sharded-bme-mongos-575c69f799-k2nnx
+  MONGODB_MONGOS_1: mongodb-sharded-bme-mongos-575c69f799-5dt4j
+  # To externalize secrets
+  CONNECT_CONFIG_PROVIDERS: "file"
+  CONNECT_CONFIG_PROVIDERS_FILE_CLASS: "org.apache.kafka.common.config.provider.FileConfigProvider"
+
+
+resources: 
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  limits:
+    cpu: 750m
+    memory: 4096Mi
+  requests:
+    cpu: 500m
+    memory: 3072Mi
+
+## Custom pod annotations
+podAnnotations: {}
+
+## Node labels for pod assignment
+## Ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+nodeSelector: {}
+
+## Taints to tolerate on node assignment:
+## Ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+tolerations: []
+
+## Pod scheduling constraints
+## Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity
+affinity: {}
+
+## Monitoring
+## Kafka Connect JMX Settings
+## ref: https://kafka.apache.org/documentation/#connect_monitoring
+jmx:
+  port: 5555
+
+## Prometheus Exporter Configuration
+## ref: https://prometheus.io/docs/instrumenting/exporters/
+prometheus:
+  ## JMX Exporter Configuration
+  ## ref: https://github.com/prometheus/jmx_exporter
+  jmx:
+    enabled: false
+    image: solsson/kafka-prometheus-jmx-exporter@sha256
+    imageTag: 6f82e2b0464f50da8104acd7363fb9b995001ddff77d248379f8788e78946143
+    imagePullPolicy: IfNotPresent
+    port: 5556
+
+    ## Resources configuration for the JMX exporter container.
+    ## See the `resources` documentation above for details.
+    resources: {}
+
+## You can list load balanced service endpoint, or list of all brokers (which is hard in K8s).  e.g.:
+## bootstrapServers: "PLAINTEXT://dozing-prawn-kafka-headless:9092"
+kafka:
+  bootstrapServers: kafka-bme.dclear-kafka-dev:9092
+
+## If the Kafka Chart is disabled a URL and port are required to connect
+## e.g. gnoble-panther-cp-schema-registry:8081
+cp-schema-registry:
+  url: kafka-schema-registry-cp-schema-registry:8081
+
+## List of volumeMounts for connect server container
+## ref: https://kubernetes.io/docs/concepts/storage/volumes/
+volumeMounts:
+# - name: credentials
+#   mountPath: /etc/creds-volume
+  - name: kafka-certs
+    readOnly: true
+    mountPath: /certs
+  - name: mongodb-bme-ca-certs
+    readOnly: true
+    mountPath: /mongo-bme/certs/ca
+  - name: mongodb-bme-gen-cert
+    mountPath: /mongo-bme/certs/gen-certs
+  - name: mongodb-certs
+    mountPath: /mongo-bme/certs
+  - name: kafka-connect-properties
+    mountPath: /opt/connect-properties
+
+## List of volumeMounts for connect server container
+## ref: https://kubernetes.io/docs/concepts/storage/volumes/
+volumes:
+# - name: credentials
+#   secret:
+#     secretName: creds
+  - name: kafka-certs
+    secret:
+      secretName: kafka-bme-0-tls
+      defaultMode: 256
+  - name: mongodb-bme-ca-certs
+    secret:
+      secretName: mongodb-bme-ca-certs
+      defaultMode: 256
+  - name: mongodb-bme-gen-cert
+    configMap:
+      name: mongodb-bme-gen-cert
+      defaultMode: 0777
+  - name: mongodb-certs
+    emptyDir: {}
+  - name: kafka-connect-properties
+    configMap:
+      name: kafka-connect-properties
+
+## Secret with multiple keys to serve the purpose of multiple secrets
+## Values for all the keys will be base64 encoded when the Secret is created or updated
+## ref: https://kubernetes.io/docs/concepts/configuration/secret/
+secrets:
+  # username: kafka123
+  # password: connect321
+
+## These values are used only when "customEnv.CUSTOM_SCRIPT_PATH" is defined.
+## "livenessProbe" is required only for the edge cases where the custom script to be ran takes too much time
+## and errors by the ENTRYPOINT are ignored by the container
+## As an example such a similar script is added to "cp-helm-charts/examples/create-connectors.sh"
+## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+livenessProbe:
+  # httpGet:
+  #   path: /connectors
+  #   port: 8083
+  # initialDelaySeconds: 30
+  # periodSeconds: 5
+  # failureThreshold: 10
